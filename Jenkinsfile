@@ -1,29 +1,38 @@
+@Library('jenkins-shared-library@main') _
+
 pipeline {
     agent any
+
     tools {
-        maven 'maven'
+        maven 'apache-maven-3.8.3'
         git 'git'
     }
+
     stages {
-        stage('Clone repository') {
+        stage('Build') {
             steps {
-                git branch: 'master', url: 'https://github.com/badtux66/polr'
+                echo 'Building...'
+                sh 'mvn clean package'
             }
         }
-        stage('Install dependencies') {
+
+        stage('Test') {
             steps {
-                sh 'cd polr && composer install --no-dev'
+                echo 'Testing...'
+                sh 'mvn test'
             }
         }
-        stage('Build application') {
+
+        stage('Deploy') {
             steps {
-                sh 'cd polr && vendor/bin/phinx migrate -e development'
-            }
-        }
-        stage('Deploy application') {
-            steps {
-                sh 'echo "Deployment step"'
+                echo 'Deploying...'
+                sh 'mvn deploy'
             }
         }
     }
+}
+
+@CompileStatic
+def myFunction() {
+    // your function code here
 }
