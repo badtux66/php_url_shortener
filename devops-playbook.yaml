@@ -140,6 +140,11 @@
       name: java-11-openjdk-devel
       state: present
 
+  - name: Install maven
+    yum:
+      name: maven
+      state: present
+
   - name: Install jenkins
     yum:
       name: jenkins
