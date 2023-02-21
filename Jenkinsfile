@@ -16,12 +16,12 @@ pipeline {
         stage('Install PHP and Composer') {
             steps {
                 script {
-                    sh 'sudo yum -y install epel-release'
-                    sh 'sudo yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm'
-                    sh 'sudo yum -y install yum-utils'
-                    sh 'sudo yum-config-manager --enable remi-php80'
-                    sh 'sudo yum -y update'
-                    sh 'sudo yum -y install php php-cli php-common php-fpm php-gd php-json php-mbstring php-mysqlnd php-opcache php-pdo php-xml php-tokenizer php-curl unzip'
+                    sh 'echo "pusula+2023" | sudo -S yum -y install epel-release'
+                    sh 'echo "pusula+2023" | sudo -S yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm'
+                    sh 'echo "pusula+2023" | sudo -S yum -y install yum-utils'
+                    sh 'echo "pusula+2023" | sudo -S yum-config-manager --enable remi-php80'
+                    sh 'echo "pusula+2023" | sudo -S yum -y update'
+                    sh 'echo "pusula+2023" | sudo -S yum -y install php php-cli php-common php-fpm php-gd php-json php-mbstring php-mysqlnd php-opcache php-pdo php-xml php-tokenizer php-curl unzip'
                     sh 'curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer'
                 }
             }
