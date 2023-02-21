@@ -17,12 +17,12 @@ pipeline {
             steps {
                 withEnv(['TERM=dumb']) {
                     sh """
-                        echo ${SSH_PASSWORD} | sudo -S yum -y install epel-release
-                        echo ${SSH_PASSWORD} | sudo -S yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm
-                        echo ${SSH_PASSWORD} | sudo -S yum -y install yum-utils
-                        echo ${SSH_PASSWORD} | sudo -S yum-config-manager --enable remi-php80
-                        echo ${SSH_PASSWORD} | sudo -S yum -y update
-                        echo ${SSH_PASSWORD} | sudo -S yum -y install php php-cli php-common php-fpm php-gd php-json php-mbstring php-mysqlnd php-opcache php-pdo php-xml php-tokenizer php-curl unzip
+                        sudo -S yum -y install epel-release <<< '${SSH_PASSWORD}'
+                        sudo -S yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm <<< '${SSH_PASSWORD}'
+                        sudo -S yum -y install yum-utils <<< '${SSH_PASSWORD}'
+                        sudo -S yum-config-manager --enable remi-php80 <<< '${SSH_PASSWORD}'
+                        sudo -S yum -y update <<< '${SSH_PASSWORD}'
+                        sudo -S yum -y install php php-cli php-fpm php-gd php-json php-mbstring php-mysqlnd php-opcache php-pdo php-xml php-tokenizer php-curl unzip <<< '${SSH_PASSWORD}'
                         curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
                     """
                 }
