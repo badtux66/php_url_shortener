@@ -1,43 +1,48 @@
 pipeline {
     agent any
+
+    tools {
+        maven "maven"
+        git "git"
+        composer "composer"
+    }
+
     stages {
         stage('Clone repository') {
             steps {
-                sh '''
-                    git clone -b master https://github.com/badtux66/polr
-                '''
+                sh "git clone -b master https://github.com/badtux66/polr"
             }
         }
+
         stage('Install dependencies') {
             steps {
-                sh '''
-                    cd polr
-                    composer install --no-dev
-                '''
+                dir('polr') {
+                    sh "composer install --no-dev"
+                }
             }
         }
+
         stage('Build application') {
             steps {
-                sh '''
-                    cd polr
-                    composer dump-autoload --no-dev --optimize
-                '''
+                dir('polr') {
+                    sh "./vendor/bin/phinx migrate"
+                }
             }
         }
+
         stage('Deploy application') {
             steps {
-                sh '''
-                    cd polr
-                    cp -R . /var/www/gshortener
-                '''
+                dir('polr') {
+                    sh "rsync -avz . root@165.227.183.80:/var/www/gshortener"
+                }
             }
         }
+
         stage('Run migrations') {
             steps {
-                sh '''
-                    cd /var/www/gshortener
-                    php index.php migrate
-                '''
+                dir('polr') {
+                    sh "./vendor/bin/phinx migrate"
+                }
             }
         }
     }
