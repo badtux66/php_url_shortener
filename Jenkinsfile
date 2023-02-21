@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Clone repository') {
             steps {
-                sh 'git clone -b master https://github.com/badtux66/polr'
+                git branch: 'master', url: 'https://github.com/badtux66/polr'
             }
         }
 
@@ -21,19 +21,19 @@ pipeline {
 
         stage('Build application') {
             steps {
-                sh 'cd polr && php artisan key:generate'
+                sh 'cd polr && php artisan key:generate && npm install && npm run dev'
             }
         }
 
         stage('Deploy application') {
             steps {
-                sh 'cp -r polr /var/www/gshortener'
+                sh 'rsync -avz --delete-after -e "ssh -i /var/lib/jenkins/.ssh/id_rsa" polr/ user@123.123.123.123:/var/www/html/polr'
             }
         }
 
         stage('Run migrations') {
             steps {
-                sh 'cd /var/www/gshortener && php artisan migrate --force'
+                sh 'ssh -i /var/lib/jenkins/.ssh/id_rsa user@123.123.123.123 "cd /var/www/html/polr && php artisan migrate"'
             }
         }
     }
