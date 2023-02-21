@@ -7,6 +7,13 @@ pipeline {
     }
 
     stages {
+
+        stage('Clean Up'){
+            steps {
+                deleteDir()
+            }
+        }
+
         stage('Clone repository') {
             steps {
                 sh "PATH=$PATH:/usr/bin git clone -b main https://github.com/badtux66/polr"
