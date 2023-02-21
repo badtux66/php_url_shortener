@@ -13,6 +13,12 @@ pipeline {
             }
         }
 
+        stage('Install Composer') {
+            steps {
+                sh 'curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer'
+            }
+        }
+
         stage('Clone repository') {
             steps {
                 sh "PATH=$PATH:/usr/bin git clone -b master https://github.com/badtux66/polr"
