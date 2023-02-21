@@ -13,22 +13,6 @@ pipeline {
             }
         }
 
-        stage('Install PHP and Composer') {
-            steps {
-                withEnv(['TERM=dumb']) {
-                    sh """
-                        sudo -S yum -y install epel-release <<< '${SSH_PASSWORD}'
-                        sudo -S yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm <<< '${SSH_PASSWORD}'
-                        sudo -S yum -y install yum-utils <<< '${SSH_PASSWORD}'
-                        sudo -S yum-config-manager --enable remi-php80 <<< '${SSH_PASSWORD}'
-                        sudo -S yum -y update <<< '${SSH_PASSWORD}'
-                        sudo -S yum -y install php php-cli php-fpm php-gd php-json php-mbstring php-mysqlnd php-opcache php-pdo php-xml php-tokenizer php-curl unzip <<< '${SSH_PASSWORD}'
-                        curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
-                    """
-                }
-            }
-        }
-
         stage('Clone repository') {
             steps {
                 sh "PATH=$PATH:/usr/bin git clone -b master https://github.com/badtux66/polr"
