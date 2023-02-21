@@ -57,6 +57,7 @@
           - php-xml
           - php-tokenizer
           - php-curl
+          - composer
         state: latest
         enablerepo: remi-php80
 

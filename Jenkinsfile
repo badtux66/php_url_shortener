@@ -7,15 +7,23 @@ pipeline {
     }
 
     stages {
-        stage('Clean Up'){
+        stage('Clean Up') {
             steps {
                 deleteDir()
             }
         }
 
-        stage('Install Composer') {
+        stage('Install PHP and Composer') {
             steps {
-                sh 'curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer'
+                script {
+                    sh 'sudo yum -y install epel-release'
+                    sh 'sudo yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm'
+                    sh 'sudo yum -y install yum-utils'
+                    sh 'sudo yum-config-manager --enable remi-php80'
+                    sh 'sudo yum -y update'
+                    sh 'sudo yum -y install php php-cli php-common php-fpm php-gd php-json php-mbstring php-mysqlnd php-opcache php-pdo php-xml php-tokenizer php-curl unzip'
+                    sh 'curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer'
+                }
             }
         }
 
