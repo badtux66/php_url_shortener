@@ -16,13 +16,15 @@ pipeline {
         stage('Install PHP and Composer') {
             steps {
                 withEnv(['TERM=dumb']) {
-                    sh 'echo "pusula+2023" | sudo -S yum -y install epel-release'
-                    sh 'echo "pusula+2023" | sudo -S yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm'
-                    sh 'echo "pusula+2023" | sudo -S yum -y install yum-utils'
-                    sh 'echo "pusula+2023" | sudo -S yum-config-manager --enable remi-php80'
-                    sh 'echo "pusula+2023" | sudo -S yum -y update'
-                    sh 'echo "pusula+2023" | sudo -S yum -y install php php-cli php-common php-fpm php-gd php-json php-mbstring php-mysqlnd php-opcache php-pdo php-xml php-tokenizer php-curl unzip'
-                    sh 'curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer'
+                    sh """
+                        echo ${SSH_PASSWORD} | sudo -S yum -y install epel-release
+                        echo ${SSH_PASSWORD} | sudo -S yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+                        echo ${SSH_PASSWORD} | sudo -S yum -y install yum-utils
+                        echo ${SSH_PASSWORD} | sudo -S yum-config-manager --enable remi-php80
+                        echo ${SSH_PASSWORD} | sudo -S yum -y update
+                        echo ${SSH_PASSWORD} | sudo -S yum -y install php php-cli php-common php-fpm php-gd php-json php-mbstring php-mysqlnd php-opcache php-pdo php-xml php-tokenizer php-curl unzip
+                        curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+                    """
                 }
             }
         }
@@ -47,7 +49,7 @@ pipeline {
 
         stage('Deploy application') {
             steps {
-                sh "rsync -avz --exclude '.env' ./ ${SSH_USER}@192.168.30.21:/var/www/gshortener"
+                sh "sshpass -p ${SSH_PASSWORD} rsync -avz --exclude '.env' ./ ${SSH_USER}@192.168.30.21:/var/www/gshortener"
                 sh "sshpass -p ${SSH_PASSWORD} ssh ${SSH_USER}@192.168.30.21 'cp /var/www/gshortener/.env.production /var/www/gshortener/.env'"
             }
         }
