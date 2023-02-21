@@ -1,38 +1,41 @@
-@Library('jenkins-shared-library@main') _
-
 pipeline {
     agent any
 
-    tools {
-        maven 'apache-maven-3.8.3'
-        git 'git'
+    environment {
+        SSH_USER = 'pusula'
+        SSH_PASSWORD = 'pusula+2023'
     }
 
     stages {
-        stage('Build') {
+        stage('Clone repository') {
             steps {
-                echo 'Building...'
-                sh 'mvn clean package'
+                sh "PATH=$PATH:/usr/bin git clone -b main https://github.com/badtux66/polr"
             }
         }
 
-        stage('Test') {
+        stage('Install dependencies') {
             steps {
-                echo 'Testing...'
-                sh 'mvn test'
+                sh 'composer install'
             }
         }
 
-        stage('Deploy') {
+        stage('Build application') {
             steps {
-                echo 'Deploying...'
-                sh 'mvn deploy'
+                sh 'php artisan build'
+            }
+        }
+
+        stage('Deploy application') {
+            steps {
+                sh "rsync -avz --exclude '.env' ./ ${SSH_USER}:${SSH_PASSWORD}@192.168.30.21:/var/www/gshortener"
+                sh "ssh ${SSH_USER}@192.168.30.21 'cp /var/www/gshortener/.env.production /var/www/gshortener/.env'"
+            }
+        }
+
+        stage('Run migrations') {
+            steps {
+                sh "ssh ${SSH_USER}@192.168.30.21 'cd /var/www/gshortener && php artisan migrate --force'"
             }
         }
     }
-}
-
-@CompileStatic
-def myFunction() {
-    // your function code here
 }
