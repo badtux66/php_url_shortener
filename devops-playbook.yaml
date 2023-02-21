@@ -1,4 +1,18 @@
 ---
+- name: Install Git
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    ansible_become_pass: pusula+2023
+  tasks:
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+
 - name: Install Apache, PHP and MySQL
   hosts: web_nodes
   become: yes
@@ -27,7 +41,7 @@
         gpgcheck: no
         enabled: yes
 
-    - name: Install PHP
+    - name: Install PHP and extensions
       yum:
         name:
           - php
@@ -41,8 +55,11 @@
           - php-opcache
           - php-pdo
           - php-xml
+          - php-tokenizer
+          - php-curl
         state: latest
         enablerepo: remi-php80
+
 
     - name: Start and enable PHP
       service:
