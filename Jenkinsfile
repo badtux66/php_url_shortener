@@ -15,7 +15,7 @@ pipeline {
 
         stage('Install PHP and Composer') {
             steps {
-                script {
+                withEnv(['TERM=dumb']) {
                     sh 'echo "pusula+2023" | sudo -S yum -y install epel-release'
                     sh 'echo "pusula+2023" | sudo -S yum -y install https://rpms.remirepo.net/enterprise/remi-release-8.rpm'
                     sh 'echo "pusula+2023" | sudo -S yum -y install yum-utils'
@@ -47,14 +47,14 @@ pipeline {
 
         stage('Deploy application') {
             steps {
-                sh "rsync -avz --exclude '.env' ./ ${SSH_USER}:${SSH_PASSWORD}@192.168.30.21:/var/www/gshortener"
-                sh "ssh ${SSH_USER}@192.168.30.21 'cp /var/www/gshortener/.env.production /var/www/gshortener/.env'"
+                sh "rsync -avz --exclude '.env' ./ ${SSH_USER}@192.168.30.21:/var/www/gshortener"
+                sh "sshpass -p ${SSH_PASSWORD} ssh ${SSH_USER}@192.168.30.21 'cp /var/www/gshortener/.env.production /var/www/gshortener/.env'"
             }
         }
 
         stage('Run migrations') {
             steps {
-                sh "ssh ${SSH_USER}@192.168.30.21 'cd /var/www/gshortener && php artisan migrate --force'"
+                sh "sshpass -p ${SSH_PASSWORD} ssh ${SSH_USER}@192.168.30.21 'cd /var/www/gshortener && php artisan migrate --force'"
             }
         }
     }
