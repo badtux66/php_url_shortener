@@ -15,7 +15,7 @@ pipeline {
 
         stage('Install PHP and Composer') {
             steps {
-                sh 'sudo dnf install -y php composer'
+                sh 'dnf install -y php composer'
             }
         }
 
