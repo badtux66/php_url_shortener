@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SSH_USER = 'pusula'
+        SSH_USER = 'root'
         SSH_PASSWORD = 'pusula+2023'
     }
 
