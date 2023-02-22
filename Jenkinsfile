@@ -13,11 +13,6 @@ pipeline {
             }
         }
 
-        stage('Install PHP and Composer') {
-            steps {
-                sh 'dnf install -y php composer'
-            }
-        }
 
         stage('Clone repository') {
             steps {
@@ -27,7 +22,7 @@ pipeline {
 
         stage('Install dependencies') {
             steps {
-                sh 'composer install'
+                sh 'composer install --no-dev -o'
             }
         }
 
