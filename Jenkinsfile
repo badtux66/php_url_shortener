@@ -15,6 +15,7 @@ pipeline {
 
         stage('Clone repository') {
             steps {
+                sh "ssh-keyscan 192.168.30.21 >> ~/.ssh/known_hosts"
                 sh "sshpass -p ${SSH_PASSWORD} ssh ${SSH_USER}@192.168.30.21 'sudo su && cd /var/www && git clone https://github.com/cydrobolt/polr.git --depth=1 && chmod -R 755 polr && chown -R apache polr && chcon -R -t httpd_sys_rw_content_t polr/storage polr/.env'"
             }
         }
