@@ -7,10 +7,15 @@
   gather_facts: yes
   vars:
     ansible_become_pass: pusula+2023
+
   tasks:
     - name: Install Git
       yum:
         name: git
+        state: present
+    - name: Install sshpass
+      yum:
+        name: sshpass
         state: present
 
 - name: Install Apache, PHP and MySQL
@@ -21,7 +26,9 @@
   gather_facts: yes
   vars:
     ansible_become_pass: pusula+2023
+
   tasks:
+
     - name: Install Apache
       yum:
         name: httpd
@@ -61,6 +68,10 @@
         state: latest
         enablerepo: remi-php80
 
+    - name: Install php composer
+      dnf:
+        name: php composer
+        state: present
 
     - name: Start and enable PHP
       service:
