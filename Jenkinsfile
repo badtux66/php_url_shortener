@@ -4,12 +4,19 @@ pipeline {
     environment {
         SSH_USER = 'pusula'
         SSH_PASSWORD = 'pusula+2023'
+        PATH = "$PATH:/usr/local/bin"
     }
 
     stages {
         stage('Clean Up') {
             steps {
                 deleteDir()
+            }
+        }
+
+        stage('Install Composer') {
+            steps {
+                sh 'curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer'
             }
         }
 
