@@ -1,66 +1,91 @@
 pipeline {
     agent any
+    
     environment {
         SSH_USER = 'pusula'
         SSH_PASSWORD = 'pusula+2023'
         TARGET_HOST = '192.168.30.21'
     }
-    options {
-        timeout(time: 1, unit: 'HOURS')
-    }
+
     stages {
         stage('Cleanup') {
             steps {
                 sh 'rm -rf polr'
             }
         }
-
+        
         stage('Clone repository') {
             steps {
                 git 'https://github.com/badtux66/php_url_shortener.git'
             }
         }
-
+        
         stage('Install Dependencies') {
             steps {
                 sh '''
                     cd polr
-                    curl -sS https://getcomposer.org/installer | php
-                    php composer.phar install --no-dev -o
+                    composer install
                 '''
             }
         }
-
+        
         stage('Copy .env') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'ssh-credentials', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASSWORD')]) {
-                    sh "scp -r -o StrictHostKeyChecking=no .env ${SSH_USER}@${TARGET_HOST}:/var/www/polr/"
-                }
+                sh '''
+                    cd polr
+                    cp .env.example .env
+                '''
             }
         }
-
+        
         stage('Set APP_KEY') {
             steps {
-                sshagent(credentials: ['ssh-credentials']) {
-                    sh "ssh -o StrictHostKeyChecking=no ${SSH_USER}@${TARGET_HOST} 'cd /var/www/polr && php artisan key:generate'"
-                }
+                sh '''
+                    cd polr
+                    php artisan key:generate
+                '''
             }
         }
-
+        
         stage('Configure Polr') {
             steps {
-                sshagent(credentials: ['ssh-credentials']) {
-                    sh "ssh -o StrictHostKeyChecking=no ${SSH_USER}@${TARGET_HOST} 'cd /var/www/polr && cp .env.production .env'"
-                }
+                sh '''
+                    cd polr
+                    sed -i "s/DB_DATABASE=homestead/DB_DATABASE=polr/g" .env
+                    sed -i "s/DB_USERNAME=homestead/DB_USERNAME=root/g" .env
+                    sed -i "s/DB_PASSWORD=secret/DB_PASSWORD=pusula_shortener_pass/g" .env
+                '''
             }
         }
-
+        
         stage('Deploy to Target') {
             steps {
-                sshagent(credentials: ['ssh-credentials']) {
-                    sh "ssh -o StrictHostKeyChecking=no ${SSH_USER}@${TARGET_HOST} 'cd /var/www/polr && php artisan migrate --force'"
-                }
+                sshPublisher(
+                    continueOnError: false, 
+                    failOnError: true,
+                    publishers: [
+                        sshPublisherDesc(
+                            configName: 'my-ssh-server', 
+                            verbose: true, 
+                            transfers: [
+                                sshTransfer(
+                                    sourceFiles: 'polr/**',
+                                    remoteDirectory: '/var/www/html/polr'
+                                )
+                            ]
+                        )
+                    ]
+                )
             }
+        }
+    }
+    
+    post {
+        success {
+            slackSend (color: '#00FF00', message: "Polr deployment successful!")
+        }
+        failure {
+            slackSend (color: '#FF0000', message: "Polr deployment failed.")
         }
     }
 }
