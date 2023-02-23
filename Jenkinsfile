@@ -32,6 +32,7 @@ pipeline {
             steps {
                 sh '''
                     cd polr
+                    composer init
                     composer install
                 '''
             }
