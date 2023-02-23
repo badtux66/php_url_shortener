@@ -14,7 +14,7 @@ pipeline {
             }
         }
 
-         stage('Create polr directory') {
+        stage('Create polr directory') {
             steps {
                 sh 'mkdir polr'
             }
