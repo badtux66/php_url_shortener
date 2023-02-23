@@ -1,56 +1,46 @@
 pipeline {
     agent any
-
-    environment {
-        SSH_USER = 'root'
-        SSH_PASSWORD = 'pusula+2023'
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '3'))
     }
-
     stages {
-        stage('Clean Up') {
+        stage('cleanup') {
             steps {
-                deleteDir()
+                sh 'rm -rf polr'
             }
         }
-
-        stage('Clone repository') {
+        stage('clone repository') {
             steps {
-                sshagent(credentials: ['<your_ssh_credentials_id>']) {
-                    sh "ssh ${SSH_USER}@192.168.30.21 'sudo su && cd /var/www && git clone https://github.com/cydrobolt/polr.git --depth=1 && chmod -R 755 polr && chown -R apache polr && chcon -R -t httpd_sys_rw_content_t polr/storage polr/.env'"
-                }
+                git branch: 'master',
+                    url: 'https://github.com/badtux66/php_url_shortener.git'
             }
         }
-
-        stage('Install dependencies') {
+        stage('install dependencies') {
             steps {
-                sshagent(credentials: ['<your_ssh_credentials_id>']) {
-                    sh "ssh ${SSH_USER}@192.168.30.21 'cd /var/www/polr && curl -sS https://getcomposer.org/installer | php && php composer.phar install --no-dev -o'"
-                }
+                sh 'sudo dnf install -y php-cli php-mbstring php-xml php-zip'
+                sh 'curl -sS https://getcomposer.org/installer | php'
+                sh 'php composer.phar install --no-dev -o'
             }
         }
-
-        stage('Build application') {
+        stage('configure apache') {
             steps {
-                sshagent(credentials: ['<your_ssh_credentials_id>']) {
-                    sh "ssh ${SSH_USER}@192.168.30.21 'cd /var/www/polr && php artisan build'"
-                }
+                sh 'sudo cp .htaccess.example .htaccess'
+                sh 'sudo chown apache:apache storage'
+                sh 'sudo chown apache:apache public'
             }
         }
-
-        stage('Deploy application') {
+        stage('configure virtual host') {
             steps {
-                sshagent(credentials: ['<your_ssh_credentials_id>']) {
-                    sh "rsync -avz --exclude '.env' ./ ${SSH_USER}@192.168.30.21:/var/www/polr"
-                    sh "ssh ${SSH_USER}@192.168.30.21 'cp /var/www/polr/.env.production /var/www/polr/.env'"
-                }
+                sh 'sudo cp config.ini.example config.ini'
+                sh 'sudo cp config.php.example config.php'
+                sh 'sudo cp config.php.example env.php'
+                sh 'sudo sed -i \'s/example.com/192.168.30.21/g\' /etc/httpd/conf/httpd.conf'
+                sh 'sudo systemctl restart httpd'
             }
         }
-
-        stage('Run migrations') {
+        stage('test installation') {
             steps {
-                sshagent(credentials: ['<your_ssh_credentials_id>']) {
-                    sh "ssh ${SSH_USER}@192.168.30.21 'cd /var/www/polr && php artisan migrate --force'"
-                }
+                sh 'curl http://192.168.30.21 > index.html'
             }
         }
     }
