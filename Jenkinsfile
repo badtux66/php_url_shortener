@@ -14,17 +14,19 @@ pipeline {
             }
         }
 
+         stage('Create polr directory') {
+            steps {
+                sh 'mkdir polr'
+            }
+        }
+
         stage('Clone repository') {
             steps {
                 git 'https://github.com/badtux66/php_url_shortener.git'
             }
         }
 
-        stage('Create polr directory') {
-            steps {
-                sh 'mkdir polr'
-            }
-        }
+       
 
         stage('Install Dependencies') {
             steps {
