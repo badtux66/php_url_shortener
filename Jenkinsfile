@@ -46,10 +46,15 @@ pipeline {
 
         stage('Copy .env') {
             steps {
-                sh '''
-                    cd polr
-                    cp .env.example .env
-                '''
+                script {
+                    dir("polr") {
+                        if (fileExists('.env.example')) {
+                            sh 'cp .env.example .env'
+                        } else {
+                            sh 'cp ../.env.example .env'
+                        }
+                    }
+                }
             }
         }
 
