@@ -20,6 +20,12 @@ pipeline {
             }
         }
 
+        stage('Create polr directory') {
+            steps {
+                sh 'mkdir polr'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 sh '''
