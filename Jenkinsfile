@@ -20,6 +20,14 @@ pipeline {
             }
         }
 
+        stage('Download .env.example') {
+            steps {
+                sh '''
+                    curl -o .env.example https://raw.githubusercontent.com/badtux66/polr/master/.env.example
+                '''
+            }
+        }
+
         stage('Clone repository') {
             steps {
                 git 'https://github.com/badtux66/polr.git'
@@ -46,15 +54,10 @@ pipeline {
 
         stage('Copy .env') {
             steps {
-                script {
-                    dir("polr") {
-                        if (fileExists('.env.example')) {
-                            sh 'cp .env.example .env'
-                        } else {
-                            sh 'cp ../.env.example .env'
-                        }
-                    }
-                }
+                sh '''
+                    cd polr
+                    cp ../.env.example .env
+                '''
             }
         }
 
