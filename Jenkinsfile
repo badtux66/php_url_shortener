@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         SSH_USER = 'pusula'
         SSH_PASSWORD = 'pusula+2023'
@@ -13,13 +13,13 @@ pipeline {
                 sh 'rm -rf polr'
             }
         }
-        
+
         stage('Clone repository') {
             steps {
                 git 'https://github.com/badtux66/php_url_shortener.git'
             }
         }
-        
+
         stage('Install Dependencies') {
             steps {
                 sh '''
@@ -28,7 +28,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Copy .env') {
             steps {
                 sh '''
@@ -37,7 +37,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Set APP_KEY') {
             steps {
                 sh '''
@@ -46,7 +46,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Configure Polr') {
             steps {
                 sh '''
@@ -57,16 +57,16 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Deploy to Target') {
             steps {
                 sshPublisher(
-                    continueOnError: false, 
+                    continueOnError: false,
                     failOnError: true,
                     publishers: [
                         sshPublisherDesc(
-                            configName: 'my-ssh-server', 
-                            verbose: true, 
+                            configName: 'my-ssh-server',
+                            verbose: true,
                             transfers: [
                                 sshTransfer(
                                     sourceFiles: 'polr/**',
@@ -79,13 +79,17 @@ pipeline {
             }
         }
     }
-    
+
     post {
         success {
-            slackSend (color: '#00FF00', message: "Polr deployment successful!")
+            catchError {
+                slackSend (color: '#00FF00', message: "Polr deployment successful!")
+            }
         }
         failure {
-            slackSend (color: '#FF0000', message: "Polr deployment failed.")
+            catchError {
+                slackSend (color: '#FF0000', message: "Polr deployment failed.")
+            }
         }
     }
 }
