@@ -79,17 +79,4 @@ pipeline {
             }
         }
     }
-
-    post {
-        success {
-            catchError {
-                slackSend (color: '#00FF00', message: "Polr deployment successful!")
-            }
-        }
-        failure {
-            catchError {
-                slackSend (color: '#FF0000', message: "Polr deployment failed.")
-            }
-        }
-    }
 }
