@@ -61,6 +61,15 @@ pipeline {
             }
         }
 
+        stage('Change Directory to Repository Root') {
+            steps {
+                sh '''
+                    cd polr
+                    cd ..
+                '''
+            }
+        }
+
         stage('Set APP_KEY') {
             steps {
                 sh '''
