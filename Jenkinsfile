@@ -14,6 +14,13 @@ pipeline {
             }
         }
 
+        stage('Clone repository') {
+            steps {
+                git 'https://github.com/badtux66/polr.git'
+                sh 'cd polr && git checkout master'
+            }
+        }
+
         stage('Create polr directory') {
             steps {
                 sh 'mkdir polr'
@@ -25,12 +32,6 @@ pipeline {
                 sh '''
                     curl -o .env.example https://raw.githubusercontent.com/badtux66/polr/master/.env.example
                 '''
-            }
-        }
-
-        stage('Clone repository') {
-            steps {
-                git 'https://github.com/badtux66/polr.git'
             }
         }
 
@@ -50,6 +51,14 @@ pipeline {
                     composer install
                 '''
             }
+            post {
+                success {
+                    sh '''
+                        cd polr
+                        php artisan key:generate
+                    '''
+                }
+            }
         }
 
         stage('Copy .env') {
@@ -57,15 +66,6 @@ pipeline {
                 sh '''
                     cd polr
                     cp ../.env.example .env
-                '''
-            }
-        }
-
-        stage('Set APP_KEY') {
-            steps {
-                sh '''
-                    cd polr
-                    php artisan key:generate
                 '''
             }
         }
