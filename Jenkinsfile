@@ -23,6 +23,7 @@ pipeline {
         stage('Download .env.example') {
             steps {
                 sh '''
+                    cd polr
                     curl -o .env.example https://raw.githubusercontent.com/badtux66/polr/master/.env.example
                 '''
             }
