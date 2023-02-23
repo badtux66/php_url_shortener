@@ -1,46 +1,52 @@
 pipeline {
     agent any
     options {
-        buildDiscarder(logRotator(numToKeepStr: '3'))
+        timestamps()
+    }
+    environment {
+        SSH_USER = 'pusula'
+        SSH_PASSWORD = 'pusula+2023'
+        TARGET_HOST = '192.168.30.21'
     }
     stages {
-        stage('cleanup') {
+        stage('Cleanup') {
             steps {
                 sh 'rm -rf polr'
             }
         }
-        stage('clone repository') {
+        stage('Clone repository') {
             steps {
-                git branch: 'master',
-                    url: 'https://github.com/badtux66/php_url_shortener.git'
+                git branch: 'master', url: 'https://github.com/badtux66/php_url_shortener.git'
             }
         }
-        stage('install dependencies') {
+        stage('Install Dependencies') {
             steps {
-                sh 'sudo dnf install -y php-cli php-mbstring php-xml php-zip'
-                sh 'curl -sS https://getcomposer.org/installer | php'
-                sh 'php composer.phar install --no-dev -o'
+                sh 'cd polr && composer install --no-dev -o'
             }
         }
-        stage('configure apache') {
+        stage('Copy .env') {
             steps {
-                sh 'sudo cp .htaccess.example .htaccess'
-                sh 'sudo chown apache:apache storage'
-                sh 'sudo chown apache:apache public'
+                sh 'cd polr && cp .env.example .env'
             }
         }
-        stage('configure virtual host') {
+        stage('Set APP_KEY') {
             steps {
-                sh 'sudo cp config.ini.example config.ini'
-                sh 'sudo cp config.php.example config.php'
-                sh 'sudo cp config.php.example env.php'
-                sh 'sudo sed -i \'s/example.com/192.168.30.21/g\' /etc/httpd/conf/httpd.conf'
-                sh 'sudo systemctl restart httpd'
+                sh 'cd polr && php artisan key:generate'
             }
         }
-        stage('test installation') {
+        stage('Configure Polr') {
             steps {
-                sh 'curl http://192.168.30.21 > index.html'
+                sh 'cd polr && php artisan polr:configure'
+            }
+        }
+        stage('Deploy to Target') {
+            steps {
+                sshagent(['ssh-agent']) {
+                    sh "sshpass -p '${SSH_PASSWORD}' scp -o StrictHostKeyChecking=no -r polr ${SSH_USER}@${TARGET_HOST}:~/"
+                }
+                sshagent(['ssh-agent']) {
+                    sh "sshpass -p '${SSH_PASSWORD}' ssh -o StrictHostKeyChecking=no ${SSH_USER}@${TARGET_HOST} 'cd polr && composer install --no-dev -o && cp .env.example .env && php artisan key:generate && php artisan polr:configure'"
+                }
             }
         }
     }
