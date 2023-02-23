@@ -22,17 +22,23 @@ pipeline {
 
         stage('Clone repository') {
             steps {
-                git 'https://github.com/badtux66/php_url_shortener.git'
+                git 'https://github.com/badtux66/polr.git'
             }
         }
 
-       
+        stage('Init Composer') {
+            steps {
+                sh '''
+                    cd polr
+                    composer init --name=badtux66/polr --description="Polr is a quick, modern and open-source link shortener" --type=project --stability=dev --license=MIT
+                '''
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
                 sh '''
                     cd polr
-                    composer init
                     composer install
                 '''
             }
