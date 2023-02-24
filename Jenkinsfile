@@ -65,11 +65,9 @@ pipeline {
         stage('Deploy to Target') {
             steps {
                 sh '''
-                    sudo dnf update
-                    sudo dnf install -y sshpass
-                    sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_HOST "sudo dnf update && sudo dnf install apache2 php mysql-server php-mysql -y"
+                    sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_HOST "sudo -S dnf update <<< $SSH_PASSWORD && sudo -S dnf install apache2 php mysql-server php-mysql -y <<< $SSH_PASSWORD"
                     sshpass -p $SSH_PASSWORD scp -o StrictHostKeyChecking=no -r polr $SSH_USER@$TARGET_HOST:/var/www/html/
-                    sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_HOST "cd /var/www/html/polr && sudo composer install && sudo chown -R www-data:www-data /var/www/html/polr && sudo chmod -R 755 /var/www/html/polr"
+                    sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_HOST "cd /var/www/html/polr && sudo -S composer install <<< $SSH_PASSWORD && sudo -S chown -R www-data:www-data /var/www/html/polr && sudo -S chmod -R 755 /var/www/html/polr <<< $SSH_PASSWORD"
                 '''
             }
         }
