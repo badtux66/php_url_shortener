@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         SSH_USER = 'pusula'
-        SSH_PASSWORD = 'pusula+2023'
         TARGET_HOST = '192.168.30.21'
     }
 
@@ -64,11 +63,11 @@ pipeline {
 
         stage('Deploy to Target') {
             steps {
-                sshagent(['my-ssh-credentials']) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'polr-deployment-pipeline', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
                         cd polr
-                        ssh -o StrictHostKeyChecking=no -l $SSH_USER $TARGET_HOST "mkdir -p /var/www/html/polr"
-                        scp -o StrictHostKeyChecking=no -r * $SSH_USER@$TARGET_HOST:/var/www/html/polr/
+                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "mkdir -p /var/www/html/polr"
+                        scp -o StrictHostKeyChecking=no -i $SSH_KEY -r * $SSH_USER@$TARGET_HOST:/var/www/html/polr/
                     '''
                 }
             }
