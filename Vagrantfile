@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
     gshortener.vm.box = "eurolinux-vagrant/rocky-9"
     gshortener.vm.hostname = "gshortener.pusula.local"
     gshortener.vm.network "public_network",
-      bridge: "wlp0s26u1u2",
+      bridge: "wlan0",
       ip: "192.168.30.21",
       dhcp: true
     gshortener.vm.provider "vmware_desktop" do |v|
@@ -27,7 +27,7 @@ Vagrant.configure("2") do |config|
     jenkins.vm.box = "eurolinux-vagrant/rocky-9"
     jenkins.vm.hostname = "jenkins01.pusula.local"
     jenkins.vm.network "public_network",
-      bridge: "wlp0s26u1u2",
+      bridge: "wlan0",
       ip: "192.168.30.22",
       dhcp: true
     jenkins.vm.synced_folder ".", "/vagrant"
