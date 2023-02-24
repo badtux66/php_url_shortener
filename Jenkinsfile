@@ -5,6 +5,9 @@ pipeline {
         SSH_USER = 'pusula'
         SSH_KEY = credentials('polr-deployment-pipeline')
         TARGET_HOST = '192.168.30.21'
+        TARGET_DIR = '/var/www/html/polr'
+        APP_PORT = 8000
+        PHP_VERSION = '7.4.33'
     }
 
     stages {
@@ -26,9 +29,9 @@ pipeline {
             steps {
                 sh '''
                     cd polr
-                    composer update
+                    composer update --no-dev
                     composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
-                    composer install
+                    composer install --no-dev
                 '''
             }
         }
@@ -51,25 +54,25 @@ pipeline {
             }
         }
 
-        stage('Configure Polr') {
-            steps {
-                sh '''
-                    cd polr
-                    sed -i "s/DB_DATABASE=homestead/DB_DATABASE=polr/g" .env
-                    sed -i "s/DB_USERNAME=homestead/DB_USERNAME=root/g" .env
-                    sed -i "s/DB_PASSWORD=secret/DB_PASSWORD=pusula_shortener_pass/g" .env
-                '''
-            }
-        }
-
         stage('Deploy to Target') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'polr-deployment-pipeline', keyFileVariable: 'SSH_KEY')]) {
-                    sh '''
-                        cd polr
-                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "mkdir -p /var/www/html/polr"
-                        scp -o StrictHostKeyChecking=no -i $SSH_KEY -r * $SSH_USER@$TARGET_HOST:/var/www/html/polr/
-                    '''
+                script {
+                    try {
+                        withCredentials([sshUserPrivateKey(credentialsId: 'polr-deployment-pipeline', keyFileVariable: 'SSH_KEY')]) {
+                            sh '''
+                                cd polr
+                                echo "Creating remote directory: $TARGET_DIR"
+                                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "sudo mkdir -p $TARGET_DIR && sudo chown $SSH_USER $TARGET_DIR"
+                                echo "Copying files to remote server: $TARGET_DIR"
+                                scp -v -o StrictHostKeyChecking=no -i $SSH_KEY -r -p polr/* $SSH_USER@$TARGET_HOST:$TARGET_DIR
+                                echo "Setting file permissions on remote server: $TARGET_DIR"
+                                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "cd $TARGET_DIR && sudo chmod -R 755 . && sudo service apache2 restart"
+                            '''
+                        }
+                    } catch (err) {
+                        echo "Deployment failed: ${err}"
+                        currentBuild.result = 'FAILURE'
+                    }
                 }
             }
         }
