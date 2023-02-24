@@ -28,7 +28,25 @@ pipeline {
                     cd polr
                     composer update
                     composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
-                    composer install --no-interaction --no-dev --prefer-dist
+                    composer install
+                '''
+            }
+        }
+
+        stage('Copy .env') {
+            steps {
+                sh '''
+                    cd polr
+                    mv .env.setup .env
+                '''
+            }
+        }
+
+        stage('Set APP_KEY') {
+            steps {
+                sh '''
+                    cd polr
+                    php artisan key:generate
                 '''
             }
         }
@@ -37,10 +55,8 @@ pipeline {
             steps {
                 sh '''
                     cd polr
-                    mv .env.setup .env
-                    php artisan key:generate
                     sed -i "s/DB_DATABASE=homestead/DB_DATABASE=polr/g" .env
-                    sed -i "s/DB_USERNAME=homestead/DB_USERNAME=pusula/g" .env
+                    sed -i "s/DB_USERNAME=homestead/DB_USERNAME=root/g" .env
                     sed -i "s/DB_PASSWORD=secret/DB_PASSWORD=pusula_shortener_pass/g" .env
                 '''
             }
@@ -48,23 +64,13 @@ pipeline {
 
         stage('Deploy to Target') {
             steps {
-                sshPublisher(
-                    continueOnError: false,
-                    failOnError: true,
-                    publishers: [
-                        sshPublisherDesc(
-                            configName: 'my-ssh-server',
-                            verbose: true,
-                            transfers: [
-                                sshTransfer(
-                                    sourceFiles: 'polr/**',
-                                    remoteDirectory: '/var/www/html/polr',
-                                    cleanRemote: true
-                                )
-                            ]
-                        )
-                    ]
-                )
+                sshagent(['my-ssh-credentials']) {
+                    sh '''
+                        cd polr
+                        ssh -o StrictHostKeyChecking=no -l $SSH_USER $TARGET_HOST "mkdir -p /var/www/html/polr"
+                        scp -o StrictHostKeyChecking=no -r * $SSH_USER@$TARGET_HOST:/var/www/html/polr/
+                    '''
+                }
             }
         }
     }
