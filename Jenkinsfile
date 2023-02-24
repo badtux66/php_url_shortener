@@ -5,7 +5,7 @@ pipeline {
         SSH_USER = 'pusula'
         SSH_KEY = credentials('polr-deployment-pipeline')
         TARGET_HOST = '192.168.30.21'
-        TARGET_DIR = '/var/www/html/polr'
+        TARGET_DIR = '/var/www/polr'
         APP_PORT = 8000
         PHP_VERSION = '7.4.33'
     }
@@ -66,7 +66,7 @@ pipeline {
                                 echo "Copying files to remote server: $TARGET_DIR"
                                 scp -v -o StrictHostKeyChecking=no -i $SSH_KEY -r -p polr/* $SSH_USER@$TARGET_HOST:$TARGET_DIR
                                 echo "Setting file permissions on remote server: $TARGET_DIR"
-                                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "cd $TARGET_DIR && sudo chmod -R 755 . && sudo service apache2 restart"
+                                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "cd $TARGET_DIR && sudo chmod -R 755 . && sudo service httpd restart"
                             '''
                         }
                     } catch (err) {
