@@ -27,7 +27,7 @@ pipeline {
                 sh '''
                     cd polr
                     composer update
-                    composer config --no-plugins allow-plugins.kylekatarnls/update -helper true
+                    composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
                     composer install
                 '''
             }
