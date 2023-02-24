@@ -28,25 +28,7 @@ pipeline {
                     cd polr
                     composer update
                     composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
-                    composer install
-                '''
-            }
-        }
-
-        stage('Copy .env') {
-            steps {
-                sh '''
-                    cd polr
-                    mv .env.setup .env
-                '''
-            }
-        }
-
-        stage('Set APP_KEY') {
-            steps {
-                sh '''
-                    cd polr
-                    php artisan key:generate
+                    composer install --no-interaction --no-dev --prefer-dist
                 '''
             }
         }
@@ -55,8 +37,10 @@ pipeline {
             steps {
                 sh '''
                     cd polr
+                    mv .env.setup .env
+                    php artisan key:generate
                     sed -i "s/DB_DATABASE=homestead/DB_DATABASE=polr/g" .env
-                    sed -i "s/DB_USERNAME=homestead/DB_USERNAME=root/g" .env
+                    sed -i "s/DB_USERNAME=homestead/DB_USERNAME=pusula/g" .env
                     sed -i "s/DB_PASSWORD=secret/DB_PASSWORD=pusula_shortener_pass/g" .env
                 '''
             }
@@ -74,7 +58,8 @@ pipeline {
                             transfers: [
                                 sshTransfer(
                                     sourceFiles: 'polr/**',
-                                    remoteDirectory: '/var/www/html/polr'
+                                    remoteDirectory: '/var/www/html/polr',
+                                    cleanRemote: true
                                 )
                             ]
                         )
