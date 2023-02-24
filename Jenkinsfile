@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SSH_USER = 'pusula'
-        SSH_KEY = credentials('polr-deployment-pipeline')
+        SSH_PASSWORD = 'pusula+2023'
         TARGET_HOST = '192.168.30.21'
     }
 
@@ -64,13 +64,13 @@ pipeline {
 
         stage('Deploy to Target') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'polr-deployment-pipeline', keyFileVariable: 'SSH_KEY')]) {
-                    sh '''
-                        cd polr
-                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "mkdir -p /var/www/html/polr"
-                        scp -o StrictHostKeyChecking=no -i $SSH_KEY -r * $SSH_USER@$TARGET_HOST:/var/www/html/polr/
-                    '''
-                }
+                sh '''
+                    sudo apt-get update
+                    sudo apt-get install -y sshpass
+                    sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_HOST "sudo apt-get update && sudo apt-get install apache2 php mysql-server php-mysql -y"
+                    sshpass -p $SSH_PASSWORD scp -o StrictHostKeyChecking=no -r polr $SSH_USER@$TARGET_HOST:/var/www/html/
+                    sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_HOST "cd /var/www/html/polr && sudo composer install && sudo chown -R www-data:www-data /var/www/html/polr && sudo chmod -R 755 /var/www/html/polr"
+                '''
             }
         }
     }
