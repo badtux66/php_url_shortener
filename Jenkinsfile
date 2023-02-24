@@ -69,7 +69,7 @@ pipeline {
           def scpCommand = "sshpass -p ${env.SSH_PASSWORD} scp -o StrictHostKeyChecking=no -r polr ${env.SSH_USER}@${env.TARGET_HOST}:/var/www/html/"
 
           sh """
-            ${sshCommand} << EOF
+            ${sshCommand} <<EOF
             sudo -S dnf remove -y php-common &&
             sudo -S dnf install -y epel-release &&
             sudo -S dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm &&
@@ -82,7 +82,7 @@ pipeline {
 
             ${scpCommand}
 
-            ${sshCommand} << EOF
+            ${sshCommand} <<EOF
             sudo -S dnf update -y <<< ${env.SSH_PASSWORD} &&
             sudo -S dnf clean all <<< ${env.SSH_PASSWORD} &&
             sudo -S dnf module enable -y php:remi-7.4 <<< ${env.SSH_PASSWORD} &&
@@ -95,6 +95,6 @@ pipeline {
           """
         }
       }
-    } 
+    }
   }
 }
