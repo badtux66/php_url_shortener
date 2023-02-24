@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         SSH_USER = 'pusula'
+        SSH_KEY = credentials('polr-deployment-pipeline')
         TARGET_HOST = '192.168.30.21'
     }
 
