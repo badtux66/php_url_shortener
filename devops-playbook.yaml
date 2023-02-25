@@ -13,6 +13,7 @@
       yum:
         name: git
         state: present
+        
     - name: Install sshpass
       yum:
         name: sshpass
