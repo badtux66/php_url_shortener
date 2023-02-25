@@ -17,6 +17,14 @@
       yum:
         name: sshpass
         state: present
+    
+    - name: Download and install Composer dependencies
+      shell: |
+        curl -sS https://getcomposer.org/installer | php
+        php composer.phar install --no-dev -o
+      args:
+        chdir: /opt/composer/php
+
 
 - name: Install Apache, PHP and MySQL
   hosts: web_nodes
@@ -51,28 +59,24 @@
     - name: Install PHP and extensions
       yum:
         name:
-          - php
-          - php-cli
-          - php-common
-          - php-fpm
-          - php-gd
-          - php-json
-          - php-mbstring
-          - php-mysqlnd
-          - php-opcache
-          - php-pdo
-          - php-xml
-          - php-tokenizer
-          - php-curl
-          - composer
+      - php74
+      - php74-cli
+      - php74-common
+      - php74-fpm
+      - php74-gd
+      - php74-json
+      - php74-mbstring
+      - php74-mysqlnd
+      - php74-opcache
+      - php74-pdo
+      - php74-xml
+      - php74-tokenizer
+      - php74-curl
+      - composer
         state: latest
-        enablerepo: remi-php80
+        enablerepo: remi-php74
 
-    - name: Install php composer
-      dnf:
-        name: php composer
-        state: present
-
+    
     - name: Start and enable PHP
       service:
         name: php-fpm
