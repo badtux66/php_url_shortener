@@ -60,20 +60,20 @@
     - name: Install PHP and extensions
       yum:
         name:
-      - php74
-      - php74-cli
-      - php74-common
-      - php74-fpm
-      - php74-gd
-      - php74-json
-      - php74-mbstring
-      - php74-mysqlnd
-      - php74-opcache
-      - php74-pdo
-      - php74-xml
-      - php74-tokenizer
-      - php74-curl
-      - composer
+          - php74
+          - php74-cli
+          - php74-common
+          - php74-fpm
+          - php74-gd
+          - php74-json
+          - php74-mbstring
+          - php74-mysqlnd
+          - php74-opcache
+          - php74-pdo
+          - php74-xml
+          - php74-tokenizer
+          - php74-curl
+          - composer
         state: latest
         enablerepo: remi-php74
 
@@ -119,6 +119,7 @@
         login_password: pusula_shortener_pass
         login_host: localhost
         state: present
+
 
 
 - name: install jenkins
