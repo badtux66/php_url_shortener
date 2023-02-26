@@ -1,32 +1,4 @@
 ---
-- name: Install Git
-  hosts: all
-  become: yes
-  become_user: root
-  become_method: sudo
-  gather_facts: yes
-  vars:
-    ansible_become_pass: pusula+2023
-
-  tasks:
-    - name: Install Git
-      yum:
-        name: git
-        state: present
-        
-    - name: Install sshpass
-      yum:
-        name: sshpass
-        state: present
-    
-    - name: Download and install Composer dependencies
-      shell: |
-        curl -sS https://getcomposer.org/installer | php
-        php composer.phar install --no-dev -o
-      args:
-        chdir: /opt/composer/php
-
-
 - name: Install Apache, PHP and MySQL
   hosts: web_nodes
   become: yes
@@ -37,6 +9,15 @@
     ansible_become_pass: pusula+2023
 
   tasks:
+    - name: Install git
+      yum:
+        name: git
+        state: present
+
+    - name: Install sshpass
+      yum:
+        name: sshpass
+        state: present
 
     - name: Install Apache
       yum:
@@ -57,32 +38,50 @@
         gpgcheck: no
         enabled: yes
 
+    - name: Add Remi-safe repository
+      yum_repository:
+        name: remi-safe
+        description: Safe Remi's RPM repository for Enterprise Linux 7 - $basearch
+        baseurl: http://rpms.remirepo.net/enterprise/7/safe/$basearch/
+        gpgcheck: no
+        enabled: yes
+
     - name: Install PHP and extensions
       yum:
         name:
-          - php74
-          - php74-cli
-          - php74-common
-          - php74-fpm
-          - php74-gd
-          - php74-json
-          - php74-mbstring
-          - php74-mysqlnd
-          - php74-opcache
-          - php74-pdo
-          - php74-xml
-          - php74-tokenizer
-          - php74-curl
+          - php
+          - php-cli
+          - php-common
+          - php-fpm
+          - php-gd
+          - php-json
+          - php-mbstring
+          - php-mysqlnd
+          - php-opcache
+          - php-pdo
+          - php-xml
+          - php-tokenizer
+          - php-curl
           - composer
         state: latest
-        enablerepo: remi-php74
+        enablerepo: remi-php80
 
-    
+    - name: Restart httpd service
+      service:
+        name: httpd
+        state: restarted
+
+    - name: Restart php-fpm service
+      service:
+        name: php-fpm
+        state: restarted
+
     - name: Start and enable PHP
       service:
         name: php-fpm
         state: started
         enabled: true
+
 
     - name: Install MySQL
       yum:
@@ -120,7 +119,29 @@
         login_host: localhost
         state: present
 
+- name: Install PHP Composer
+  hosts: web_nodes
+  become: yes
+  gather_facts: yes
 
+  vars:
+    composer_url: https://getcomposer.org/download/latest-stable/composer.phar
+
+  tasks:
+    # Install Composer the lightweight way (without using installer)
+    # https://getcomposer.org/download
+    - name: Composer | Install Composer latest-stable
+      get_url:
+        url: '{{ composer_url }}'
+        checksum: 'sha256:{{ composer_url }}.sha256sum'
+        dest: /usr/local/bin/composer.phar
+        mode: 0755
+
+    - name: Composer | Symlink composer.phar
+      file:
+        src: composer.phar
+        dest: /usr/local/bin/composer
+        state: link
 
 - name: install jenkins
   hosts: jenkins_nodes
@@ -132,6 +153,16 @@
     ansible_become_pass: pusula+2023
 
   tasks:
+
+  - name: Install git
+    yum:
+        name: git
+        state: present
+
+  - name: Install sshpass
+    yum:
+      name: sshpass
+      state: present
 
   - name: Ensure EPEL repository is present
     yum:
