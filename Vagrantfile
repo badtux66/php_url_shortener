@@ -1,6 +1,9 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+$network_interface = `sudo iw dev | awk '$1=="Interface"{print $2}'`.strip
+$subnet = `ip -4 addr show $network_interface | awk '/inet 192.168./{split($2,a,"."); print a[3]}'`.strip
+
 Vagrant.configure("2") do |config|
 
   # LAMP server
@@ -8,8 +11,8 @@ Vagrant.configure("2") do |config|
     gshortener.vm.box = "eurolinux-vagrant/rocky-9"
     gshortener.vm.hostname = "gshortener.pusula.local"
     gshortener.vm.network "public_network",
-      bridge: "wlan0",
-      ip: "192.168.30.21",
+      bridge: $network_interface,
+      ip: "192.168.#{$subnet}.21",
       dhcp: true
     gshortener.vm.provider "vmware_desktop" do |v|
       v.gui = true
@@ -27,8 +30,8 @@ Vagrant.configure("2") do |config|
     jenkins.vm.box = "eurolinux-vagrant/rocky-9"
     jenkins.vm.hostname = "jenkins01.pusula.local"
     jenkins.vm.network "public_network",
-      bridge: "wlan0",
-      ip: "192.168.30.22",
+      bridge: $network_interface,
+      ip: "192.168.#{$subnet}.22",
       dhcp: true
     jenkins.vm.synced_folder ".", "/vagrant"
     jenkins.vm.provider "vmware_desktop" do |v|
