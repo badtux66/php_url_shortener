@@ -67,8 +67,9 @@
   gather_facts: yes
   vars:
     ansible_become_pass: pusula+2023
-  shell: echo 'pusula+2023' > /var/lib/jenkins/secrets/initialAdminPassword
-
+  tasks:
+    - name: Change Jenkins initial Admin Password
+      shell: echo 'pusula+2023' > /var/lib/jenkins/secrets/initialAdminPassword
 
 - name: Start jenkins
   hosts: jenkins_nodes
