@@ -59,6 +59,17 @@
     ansible.builtin.systemd:
       daemon_reload: yes
 
+- name: Set Jenkins initial Admin Password
+  hosts: jenkins_nodes
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    ansible_become_pass: pusula+2023
+  shell: echo 'pusula+2023' > /var/lib/jenkins/secrets/initialAdminPassword
+
+
 - name: Start jenkins
   hosts: jenkins_nodes
   become: yes
@@ -218,5 +229,5 @@
       file:
         src: composer.phar
         dest: /usr/local/bin/composer
-        state: link 
+        state: link
 
