@@ -222,8 +222,25 @@
 - name: Add SSH host keys to known_hosts file
   hosts: all
   become: yes
-  gather_facts: no
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    ansible_become_pass: pusula+2023
+    
   tasks:
+    - name: Create .ssh directory
+      file:
+        path: ~/.ssh
+        state: directory
+        mode: '0700'
+
+    - name: Create known_hosts file
+      file:
+        path: ~/.ssh/known_hosts
+        state: touch
+        mode: '0600'
+
     - name: Retrieve SSH host keys
       shell: ssh-keyscan -H {{ inventory_hostname }} >> ~/.ssh/known_hosts
       register: ssh_keyscan_output
@@ -231,3 +248,4 @@
     - name: Debug SSH host keys
       debug:
         var: ssh_keyscan_output.stdout_lines
+
