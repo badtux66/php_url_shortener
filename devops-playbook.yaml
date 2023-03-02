@@ -35,10 +35,10 @@
       state: present
       key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
 
-  - name: yum update
-    yum:
-      name: '*'
-      state: latest
+ # - name: yum update
+ #   yum:
+ #     name: '*'
+ #     state: latest
 
   - name: Install java
     yum:
@@ -227,7 +227,7 @@
   gather_facts: yes
   vars:
     ansible_become_pass: pusula+2023
-    
+
   tasks:
     - name: Create .ssh directory
       file:
