@@ -14,7 +14,7 @@ Here are the required commands to run the application:
 $ git clone https://github.com/badtux66/php_url_shortener
 $ cd /php_url_shortener
 $ sudo vagrant up --provision;
-$ ansible-playbook devops-playbook.yaml. -i inventory.py
+$ ansible-playbook devops-playbook.yaml -i inventory.py
 ```
 Since this is an alpha release of the project, and there may be some issues that will be resolved soon.
 
