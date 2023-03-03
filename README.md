@@ -1,7 +1,7 @@
 # php_url_shortener
 
 This project deploys the application polr at https://github.com/badtux66/polr, which is a fork of https://github.com/cydrobolt/polr.
-Prerequisites
+## Prerequisites
 
 Before running the project, you need to have Python3, Ansible, Vagrant, and VMware Workstation Pro or VMware Workstation Player installed on your system. This application stack is designed for Unix-like operating systems. If you want to run it on a Windows machine, you will need to use Windows Subsystem for Linux.
 
