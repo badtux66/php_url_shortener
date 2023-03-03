@@ -5,7 +5,7 @@ Prerequisites
 
 Before running the project, you need to have Python3, Ansible, Vagrant, and VMware Workstation Pro or VMware Workstation Player installed on your system. This application stack is designed for Unix-like operating systems. If you want to run it on a Windows machine, you will need to use Windows Subsystem for Linux.
 
-###Installation
+##Installation
 
 Here are the required commands to run the application:
 
