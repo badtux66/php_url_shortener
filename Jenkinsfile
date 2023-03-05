@@ -76,5 +76,33 @@ pipeline {
                 }
             }
         }
+        
+        stage('Cleanup after Deployment') {
+            steps {
+                sh '''
+                    cd polr
+                    rm -rf vendor
+                    rm -rf composer.lock
+                '''
+            }
+        }
+
+        stage('Install Dependencies after Deployment') {
+            steps {
+                sh '''
+                    cd polr
+                    composer install --no-dev
+                '''
+            }
+        }
+
+        stage('Run Database Migrations after Deployment') {
+            steps {
+                sh '''
+                    cd polr
+                    php artisan migrate --force
+                '''
+            }
+        }
     }
 }
