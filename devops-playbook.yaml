@@ -215,5 +215,12 @@
         dest: /usr/local/bin/composer
         state: link
 
-    - name: composer update
-      
+- name: Install Laravel
+composer:
+  global_command: create-project
+  arguments: laravel/laravel /var/www/laravel
+  global_path: /usr/local/bin
+  create_global_command_path: yes
+  no_dev: yes
+
+
