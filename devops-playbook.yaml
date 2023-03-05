@@ -215,3 +215,5 @@
         dest: /usr/local/bin/composer
         state: link
 
+    - name: composer update
+      
