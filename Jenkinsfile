@@ -25,18 +25,6 @@ pipeline {
             }
         }
 
-        stage('Create composer.json') {
-            steps {
-                sh '''
-                    echo '{
-                      "require": {
-                        "php": "^8.0.27"
-                      }
-                    }' > polr/composer.json
-                '''
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
                 sh '''
