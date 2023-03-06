@@ -7,54 +7,42 @@
   gather_facts: yes
   vars:
     ansible_become_pass: pusula+2023
-
   tasks:
-
-  - name: Install git
-    yum:
+    - name: Install git
+      yum:
         name: git
         state: present
-
-  - name: Install sshpass
-    yum:
-      name: sshpass
-      state: present
-
-  - name: Ensure EPEL repository is present
-    yum:
-      name: epel-release
-      state: present
-
-  - name: Download Long Term Jenkins release
-    get_url:
-      url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
-      dest: /etc/yum.repos.d/jenkins.repo
-
-  - name: Import jenkins key from url
-    ansible.builtin.rpm_key:
-      state: present
-      key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
-
-
-  - name: Install java
-    yum:
-      name: java-11-openjdk-devel
-      state: present
-
-  - name: Install maven
-    yum:
-      name: maven
-      state: present
-
-  - name: Install jenkins
-    yum:
-      name: jenkins
-      state: latest
-
-  - name: daemon-reload to pick up config changes
-    ansible.builtin.systemd:
-      daemon_reload: yes
-
+    - name: Install sshpass
+      yum:
+        name: sshpass
+        state: present
+    - name: Ensure EPEL repository is present
+      yum:
+        name: epel-release
+        state: present
+    - name: Download Long Term Jenkins release
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+    - name: Import jenkins key from url
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+    - name: Install java
+      yum:
+        name: java-11-openjdk-devel
+        state: present
+    - name: Install maven
+      yum:
+        name: maven
+        state: present
+    - name: Install jenkins
+      yum:
+        name: jenkins
+        state: latest
+    - name: daemon-reload to pick up config changes
+      ansible.builtin.systemd:
+        daemon_reload: yes
 - name: Start jenkins
   hosts: jenkins_nodes
   become: yes
@@ -63,15 +51,69 @@
   gather_facts: yes
   vars:
     ansible_become_pass: pusula+2023
-
   tasks:
-     - name: Start jenkins service
-       service:
-         name: jenkins
-         state: started
-         enabled: yes
-
-- name: Install Apache, PHP and MySQL
+    - name: Start jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
+- name: Install Apache and MySQL
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    ansible_become_pass: pusula+2023
+  tasks:
+    - name: Install git
+      yum:
+        name: git
+        state: present
+    - name: Install sshpass
+      yum:
+        name: sshpass
+        state: present
+    - name: Install Apache
+      yum:
+        name: httpd
+        state: present
+    - name: Start the httpd service
+      service:
+        name: httpd
+        state: started
+        enabled: true
+    - name: Install MySQL
+      yum:
+        name: mysql-server
+        state: present
+    - name: Start MySQL Service
+      service:
+        name: mysqld
+        state: started
+        enabled: true
+    - name: Install pip for PyMySQL
+      yum:
+        name:
+          - python3-pip
+        state: latest
+    - name: Install PyMySQL for MySQL
+      pip:
+        name: pymysql
+    - name: Create MySQL User
+      mysql_user:
+        name: pusula_shortener
+        host: localhost
+        password: pusula_shortener_pass
+        priv: "*.*:ALL"
+    - name: Create MySQL Database
+      mysql_db:
+        name: pusula_shortener
+        login_user: pusula_shortener
+        login_password: pusula_shortener_pass
+        login_host: localhost
+        state: present
+- name: Install PHP 7.4.33 and required packages
   hosts: all
   become: yes
   become_user: root
@@ -81,138 +123,48 @@
     ansible_become_pass: pusula+2023
 
   tasks:
-    - name: Install git
-      yum:
-        name: git
-        state: present
-
-    - name: Install sshpass
-      yum:
-        name: sshpass
-        state: present
-
-    - name: Install Apache
-      yum:
-        name: httpd
-        state: present
-
-    - name: Start the httpd service
-      service:
-        name: httpd
-        state: started
-        enabled: true
-
-    - name: Add Remi release repository
-      yum_repository:
-        name: remi
-        description: Remi's RPM repository for Enterprise Linux 7 - $basearch
-        baseurl: http://rpms.remirepo.net/enterprise/7/remi/$basearch/
-        gpgcheck: no
-        enabled: yes
-
-    - name: Add Remi-safe repository
-      yum_repository:
-        name: remi-safe
-        description: Safe Remi's RPM repository for Enterprise Linux 7 - $basearch
-        baseurl: http://rpms.remirepo.net/enterprise/7/safe/$basearch/
-        gpgcheck: no
-        enabled: yes
-
-    - name: Install PHP 7.4 and required packages
+    - name: Install PHP 7.4.33 and required packages
       dnf:
         name:
-          - php7.4
-          - php7.4-cli
-          - php7.4-common
-          - php7.4-fpm
-          - php7.4-gd
-          - php7.4-json
-          - php7.4-mbstring
-          - php7.4-mysqlnd
-          - php7.4-opcache
-          - php7.4-pdo
-          - php7.4-xml
-          - php7.4-tokenizer
-          - php7.4-curl
+          - php
+          - php-cli
+          - php-common
+          - php-fpm
+          - php-gd
+          - php-json
+          - php-mbstring
+          - php-mysqlnd
+          - php-opcache
+          - php-pdo
+          - php-xml
+          - php-tokenizer
+          - php-curl
         state: present
-
-    - name: Restart httpd service
-      service:
-        name: httpd
-        state: restarted
-
-    - name: Restart php-fpm service
-      service:
-        name: php-fpm
-        state: restarted
-
-    - name: Start and enable PHP
-      service:
-        name: php-fpm
-        state: started
-        enabled: true
-
-
-    - name: Install MySQL
-      yum:
-        name: mysql-server
-        state: present
-
-    - name: Start MySQL Service
-      service:
-        name: mysqld
-        state: started
-        enabled: true
-
-    - name: Install pip for PyMySQL
-      yum:
-        name:
-          - python3-pip
-        state: latest
-
-    - name: Install PyMySQL for MySQL
-      pip:
-        name: pymysql
-
-    - name: Create MySQL User
-      mysql_user:
-        name: pusula_shortener
-        host: localhost
-        password: pusula_shortener_pass
-        priv: "*.*:ALL"
-
-    - name: Create MySQL Database
-      mysql_db:
-        name: pusula_shortener
-        login_user: pusula_shortener
-        login_password: pusula_shortener_pass
-        login_host: localhost
-        state: present
-
+      vars:
+        dnf_install_repositories:
+          - name: remi
+            baseurl: https://rpms.remirepo.net/enterprise/8/remi/x86_64/
+            gpgcheck: yes
+            gpgkey: https://rpms.remirepo.net/RPM-GPG-KEY-remi
+      when: ansible_distribution == "Rocky Linux" and ansible_distribution_major_version == "8"
 - name: Install PHP Composer
   hosts: all
   become: yes
+  become_user: root
+  become_method: sudo
   gather_facts: yes
-
   vars:
+    ansible_become_pass: pusula+2023
     composer_url: https://getcomposer.org/download/latest-stable/composer.phar
-
   tasks:
-    # Install Composer the lightweight way (without using installer)
-    # https://getcomposer.org/download
     - name: Composer | Install Composer latest-stable
       get_url:
-        url: '{{ composer_url }}'
-        checksum: 'sha256:{{ composer_url }}.sha256sum'
+        url: "{{ composer_url }}"
+        checksum: sha256:{{ composer_url }}.sha256sum
         dest: /usr/local/bin/composer.phar
-        mode: 0755
-
+        mode: 755
     - name: Composer | Symlink composer.phar
       file:
         src: composer.phar
         dest: /usr/local/bin/composer
         state: link
-
-
-
-
