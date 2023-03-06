@@ -125,29 +125,29 @@ vars:
 
 tasks:
   
-- name: Add Remi release repository
-  yum_repository:
-    name: remi
-    description: Remi's RPM repository for Enterprise Linux 7 - $basearch
-    baseurl: http://rpms.remirepo.net/enterprise/7/remi/$basearch/
-    gpgcheck: no
-    enabled: yes
+  - name: Add Remi release repository
+    yum_repository:
+      name: remi
+      description: Remi's RPM repository for Enterprise Linux 7 - $basearch
+      baseurl: http://rpms.remirepo.net/enterprise/7/remi/$basearch/
+      gpgcheck: no
+      enabled: yes
 
-- name: Add Remi-safe repository
-  yum_repository:
-    name: remi-safe
-    description: Safe Remi's RPM repository for Enterprise Linux 7 - $basearch
-    baseurl: http://rpms.remirepo.net/enterprise/7/safe/$basearch/
-    gpgcheck: no
-    enabled: yes
+  - name: Add Remi-safe repository
+    yum_repository:
+      name: remi-safe
+      description: Safe Remi's RPM repository for Enterprise Linux 7 - $basearch
+      baseurl: http://rpms.remirepo.net/enterprise/7/safe/$basearch/
+      gpgcheck: no
+      enabled: yes
 
-- name: Add Remi PHP 7.4 repository
-  yum_repository:
-    name: remi-php74
-    description: Remi's PHP 7.4 RPM repository for Enterprise Linux 7 - $basearch
-    baseurl: http://rpms.remirepo.net/enterprise/7/php74/$basearch/
-    gpgcheck: no
-    enabled: yes
+  - name: Add Remi PHP 7.4 repository
+    yum_repository:
+      name: remi-php74
+      description: Remi's PHP 7.4 RPM repository for Enterprise Linux 7 - $basearch
+      baseurl: http://rpms.remirepo.net/enterprise/7/php74/$basearch/
+      gpgcheck: no
+      enabled: yes
 
 
 - name: Install PHP 7.4.33 and required packages
