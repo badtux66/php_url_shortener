@@ -4,7 +4,7 @@ pipeline {
     environment {
         SSH_USER = 'pusula'
         SSH_KEY = credentials('polr-deployment-pipeline')
-        TARGET_HOST = '192.168.151.21'
+        TARGET_HOST = '192.168.155.21'
         TARGET_DIR = '/var/www/polr'
         APP_PORT = 8000
         PHP_VERSION = '8.0.27'
