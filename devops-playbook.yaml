@@ -34,11 +34,7 @@
     ansible.builtin.rpm_key:
       state: present
       key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
-      
-  - name: yum update
-    yum:
-      name: '*'
-      state: latest
+
 
   - name: Install java
     yum:
@@ -122,8 +118,8 @@
         gpgcheck: no
         enabled: yes
 
-    - name: Install PHP and extensions
-      yum:
+    - name: Install PHP 7.4 and required packages
+      dnf:
         name:
           - php
           - php-cli
@@ -138,9 +134,7 @@
           - php-xml
           - php-tokenizer
           - php-curl
-          - composer
-        state: latest
-        enablerepo: remi-php74
+        state: present
 
     - name: Restart httpd service
       service:
@@ -218,3 +212,6 @@
         src: composer.phar
         dest: /usr/local/bin/composer
         state: link
+
+
+
