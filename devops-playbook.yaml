@@ -113,6 +113,43 @@
         login_password: pusula_shortener_pass
         login_host: localhost
         state: present
+
+- name: Add Remi release repositories
+hosts: all
+become: yes
+become_user: root
+become_method: sudo
+gather_facts: yes
+vars:
+  ansible_become_pass: pusula+2023
+
+tasks:
+  
+- name: Add Remi release repository
+  yum_repository:
+    name: remi
+    description: Remi's RPM repository for Enterprise Linux 7 - $basearch
+    baseurl: http://rpms.remirepo.net/enterprise/7/remi/$basearch/
+    gpgcheck: no
+    enabled: yes
+
+- name: Add Remi-safe repository
+  yum_repository:
+    name: remi-safe
+    description: Safe Remi's RPM repository for Enterprise Linux 7 - $basearch
+    baseurl: http://rpms.remirepo.net/enterprise/7/safe/$basearch/
+    gpgcheck: no
+    enabled: yes
+
+- name: Add Remi PHP 7.4 repository
+  yum_repository:
+    name: remi-php74
+    description: Remi's PHP 7.4 RPM repository for Enterprise Linux 7 - $basearch
+    baseurl: http://rpms.remirepo.net/enterprise/7/php74/$basearch/
+    gpgcheck: no
+    enabled: yes
+
+
 - name: Install PHP 7.4.33 and required packages
   hosts: all
   become: yes
@@ -143,10 +180,11 @@
       vars:
         dnf_install_repositories:
           - name: remi
-            baseurl: https://rpms.remirepo.net/enterprise/8/remi/x86_64/
+            baseurl: http://rpms.remirepo.net/enterprise/7/php74/x86_64/
             gpgcheck: yes
-            gpgkey: https://rpms.remirepo.net/RPM-GPG-KEY-remi
-      when: ansible_distribution == "Rocky Linux" and ansible_distribution_major_version == "8"
+            gpgkey: http://rpms.remirepo.net/RPM-GPG-KEY-remi
+      when: ansible_distribution == "Rocky Linux" and ansible_distribution_major_version == "7"
+      
 - name: Install PHP Composer
   hosts: all
   become: yes
