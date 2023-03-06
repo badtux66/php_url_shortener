@@ -121,19 +121,19 @@
     - name: Install PHP 7.4 and required packages
       dnf:
         name:
-          - php
-          - php-cli
-          - php-common
-          - php-fpm
-          - php-gd
-          - php-json
-          - php-mbstring
-          - php-mysqlnd
-          - php-opcache
-          - php-pdo
-          - php-xml
-          - php-tokenizer
-          - php-curl
+          - php7.4
+          - php7.4-cli
+          - php7.4-common
+          - php7.4-fpm
+          - php7.4-gd
+          - php7.4-json
+          - php7.4-mbstring
+          - php7.4-mysqlnd
+          - php7.4-opcache
+          - php7.4-pdo
+          - php7.4-xml
+          - php7.4-tokenizer
+          - php7.4-curl
         state: present
 
     - name: Restart httpd service
