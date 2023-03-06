@@ -34,7 +34,11 @@
     ansible.builtin.rpm_key:
       state: present
       key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
-
+      
+  - name: yum update
+    yum:
+      name: '*'
+      state: latest
 
   - name: Install java
     yum:
@@ -214,6 +218,3 @@
         src: composer.phar
         dest: /usr/local/bin/composer
         state: link
-
-
-
