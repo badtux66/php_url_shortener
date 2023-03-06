@@ -1,4 +1,170 @@
 ---
+- name: Install Remi repository 7
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    ansible_become_pass: pusula+2023
+
+  tasks:
+    - name: Install EPEL repository
+      yum:
+        name: epel-release
+        state: present
+    - name: Install Remi repository 7
+      yum_repository:
+        name: remi
+        description: Remi's RPM repository for Enterprise Linux 7 - $basearch
+        baseurl: http://rpms.remirepo.net/enterprise/7/remi/$basearch/
+        gpgkey: https://rpms.remirepo.net/RPM-GPG-KEY-remi
+        gpgcheck: yes
+        enabled: yes
+        state: present
+
+- name: Install EPEL repository 7
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    ansible_become_pass: pusula+2023
+
+  tasks:
+    - name: Download EPEL repository package
+      get_url:
+        url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        dest: /tmp/epel-release-latest-7.noarch.rpm
+    - name: Install EPEL repository package
+      yum:
+        name: /tmp/epel-release-latest-7.noarch.rpm
+        state: present
+      register: epel_installed
+    - name: Remove downloaded EPEL repository package
+      file:
+        path: /tmp/epel-release-latest-7.noarch.rpm
+        state: absent
+
+
+- name: Install Apache, PHP, MySQL and other tools
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    ansible_become_pass: pusula+2023
+
+  tasks:
+    - name: Install git
+      yum:
+        name: git
+        state: present
+
+    - name: Install sshpass
+      yum:
+        name: sshpass
+        state: present
+
+    - name: Install Apache
+      yum:
+        name: httpd
+        state: present
+
+    - name: Start the httpd service
+      service:
+        name: httpd
+        state: started
+        enabled: true
+      
+    - name: Install php 7.4.33
+      yum:
+        name:
+          - php
+          - php-cli
+          - php-common
+          - php-fpm
+          - php-gd
+          - php-json
+          - php-mbstring
+          - php-mysqlnd
+          - php-opcache
+          - php-pdo
+          - php-xml
+          - php-tokenizer
+          - php-curl
+        state: present
+      vars:
+        yum_install_repositories:
+          - name: remi
+            baseurl: http://rpms.remirepo.net/enterprise/7/php74/x86_64/
+            gpgcheck: yes
+            gpgkey: http://rpms.remirepo.net/RPM-GPG-KEY-remi
+    
+    - name: Install MySQL
+      yum:
+        name: mysql-server
+        state: present
+
+    - name: Start MySQL Service
+      service:
+        name: mysqld
+        state: started
+        enabled: true
+
+    - name: Install pip for PyMySQL
+      yum:
+        name:
+          - python3-pip
+        state: latest
+
+    - name: Install PyMySQL for MySQL
+      pip:
+        name: pymysql
+
+    - name: Create MySQL User
+      mysql_user:
+        name: pusula_shortener
+        host: localhost
+        password: pusula_shortener_pass
+        priv: "*.*:ALL"
+
+    - name: Create MySQL Database
+      mysql_db:
+        name: pusula_shortener
+        login_user: pusula_shortener
+        login_password: pusula_shortener_pass
+        login_host: localhost
+        state: present
+
+- name: Install PHP Composer
+  hosts: web_nodes
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+
+  vars:
+    composer_url: https://getcomposer.org/download/latest-stable/composer.phar
+    ansible_become_pass: pusula+2023
+  tasks:
+    # Install Composer the lightweight way (without using installer)
+    # https://getcomposer.org/download
+    - name: Composer | Install Composer latest-stable
+      get_url:
+        url: '{{ composer_url }}'
+        checksum: 'sha256:{{ composer_url }}.sha256sum'
+        dest: /usr/local/bin/composer.phar
+        mode: 0755
+
+    - name: Composer | Symlink composer.phar
+      file:
+        src: composer.phar
+        dest: /usr/local/bin/composer
+        state: link
+
 - name: install jenkins
   hosts: jenkins_nodes
   become: yes
@@ -8,18 +174,6 @@
   vars:
     ansible_become_pass: pusula+2023
   tasks:
-    - name: Install git
-      yum:
-        name: git
-        state: present
-    - name: Install sshpass
-      yum:
-        name: sshpass
-        state: present
-    - name: Ensure EPEL repository is present
-      yum:
-        name: epel-release
-        state: present
     - name: Download Long Term Jenkins release
       get_url:
         url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
@@ -43,166 +197,8 @@
     - name: daemon-reload to pick up config changes
       ansible.builtin.systemd:
         daemon_reload: yes
-- name: Start jenkins
-  hosts: jenkins_nodes
-  become: yes
-  become_user: root
-  become_method: sudo
-  gather_facts: yes
-  vars:
-    ansible_become_pass: pusula+2023
-  tasks:
     - name: Start jenkins service
       service:
         name: jenkins
         state: started
         enabled: yes
-- name: Install Apache and MySQL
-  hosts: all
-  become: yes
-  become_user: root
-  become_method: sudo
-  gather_facts: yes
-  vars:
-    ansible_become_pass: pusula+2023
-  tasks:
-    - name: Install git
-      yum:
-        name: git
-        state: present
-    - name: Install sshpass
-      yum:
-        name: sshpass
-        state: present
-    - name: Install Apache
-      yum:
-        name: httpd
-        state: present
-    - name: Start the httpd service
-      service:
-        name: httpd
-        state: started
-        enabled: true
-    - name: Install MySQL
-      yum:
-        name: mysql-server
-        state: present
-    - name: Start MySQL Service
-      service:
-        name: mysqld
-        state: started
-        enabled: true
-    - name: Install pip for PyMySQL
-      yum:
-        name:
-          - python3-pip
-        state: latest
-    - name: Install PyMySQL for MySQL
-      pip:
-        name: pymysql
-    - name: Create MySQL User
-      mysql_user:
-        name: pusula_shortener
-        host: localhost
-        password: pusula_shortener_pass
-        priv: "*.*:ALL"
-    - name: Create MySQL Database
-      mysql_db:
-        name: pusula_shortener
-        login_user: pusula_shortener
-        login_password: pusula_shortener_pass
-        login_host: localhost
-        state: present
-
-- name: Add Remi release repositories
-  hosts: all
-  become: yes
-  become_user: root
-  become_method: sudo
-  gather_facts: yes
-  vars:
-    ansible_become_pass: pusula+2023
-
-  tasks:
-    
-    - name: Add Remi release repository
-      yum_repository:
-        name: remi
-        description: Remi's RPM repository for Enterprise Linux 7 - $basearch
-        baseurl: http://rpms.remirepo.net/enterprise/7/remi/$basearch/
-        gpgcheck: no
-        enabled: yes
-
-    - name: Add Remi-safe repository
-      yum_repository:
-        name: remi-safe
-        description: Safe Remi's RPM repository for Enterprise Linux 7 - $basearch
-        baseurl: http://rpms.remirepo.net/enterprise/7/safe/$basearch/
-        gpgcheck: no
-        enabled: yes
-
-    - name: Add Remi PHP 7.4 repository
-      yum_repository:
-        name: remi-php74
-        description: Remi's PHP 7.4 RPM repository for Enterprise Linux 7 - $basearch
-        baseurl: http://rpms.remirepo.net/enterprise/7/php74/$basearch/
-        gpgcheck: no
-        enabled: yes
-
-
-- name: Install PHP 7.4.33 and required packages
-  hosts: all
-  become: yes
-  become_user: root
-  become_method: sudo
-  gather_facts: yes
-  vars:
-    ansible_become_pass: pusula+2023
-
-  tasks:
-    - name: Install PHP 7.4.33 and required packages
-      dnf:
-        name:
-          - php
-          - php-cli
-          - php-common
-          - php-fpm
-          - php-gd
-          - php-json
-          - php-mbstring
-          - php-mysqlnd
-          - php-opcache
-          - php-pdo
-          - php-xml
-          - php-tokenizer
-          - php-curl
-      state: present
-      vars:
-        dnf_install_repositories:
-          - name: remi
-            baseurl: http://rpms.remirepo.net/enterprise/7/php74/x86_64/
-            gpgcheck: yes
-            gpgkey: http://rpms.remirepo.net/RPM-GPG-KEY-remi
-      when: ansible_distribution == "Rocky Linux" and ansible_distribution_major_version == "7"
-      
-- name: Install PHP Composer
-  hosts: all
-  become: yes
-  become_user: root
-  become_method: sudo
-  gather_facts: yes
-  vars:
-    ansible_become_pass: pusula+2023
-    composer_url: https://getcomposer.org/download/latest-stable/composer.phar
-  tasks:
-    - name: Composer | Install Composer latest-stable
-      get_url:
-        url: "{{ composer_url }}"
-        checksum: sha256:{{ composer_url }}.sha256sum
-        dest: /usr/local/bin/composer.phar
-        mode: 755
-    - name: Composer | Symlink composer.phar
-      file:
-        src: composer.phar
-        dest: /usr/local/bin/composer
-        state: link
