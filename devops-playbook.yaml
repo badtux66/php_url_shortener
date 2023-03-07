@@ -182,7 +182,7 @@
         state: present
 
 - name: Install PHP Composer
-  hosts: web_nodes
+  hosts: all
   become: yes
   become_user: root
   become_method: sudo
