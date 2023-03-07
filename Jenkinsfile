@@ -13,9 +13,7 @@ pipeline {
     stages {
         stage('Cleanup') {
             steps {
-                sh'''
-                    rm -rf polr
-                '''    
+                sh 'rm -rf polr'
             }
         }
 
@@ -47,37 +45,18 @@ pipeline {
             }
         }
 
-        stage('SSH to Target') {
-            steps {                              
-                sh '''
-                     cd ~/.ssh
-                     ssh -i $SSH_KEY $SSH_USER@$TARGET_HOST                                                                                                
-                 '''
-            }        
-        }
-                     
-        stage('mkdir & chown Target Directory') {
-            steps {
-                sh '''
-                     cd /var/www/polr
-                     sudo mkdir -p $TARGET_DIR && sudo chown $SSH_USER $TARGET_DIR                     
-                '''
-            }
-        }
-
         stage('Deploy via SCP') {
             steps {
-                sh '''                    
+                sh '''
                     scp -v -o StrictHostKeyChecking=no -i $SSH_KEY -r -p polr/* $SSH_USER@$TARGET_HOST:$TARGET_DIR
                 '''
             }
         }
 
-
         stage('Setting File Permissions on the Target Directory') {
             steps {
                 sh '''
-                     cd $TARGET_DIR && sudo chmod -R 755 . && sudo service httpd restart
+                    ssh -i $SSH_KEY $SSH_USER@$TARGET_HOST "cd $TARGET_DIR && sudo chmod -R 755 . && sudo service httpd restart"
                 '''
             }
         }
@@ -91,7 +70,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Install Dependencies after Deployment') {
             steps {
                 sh '''
@@ -107,6 +86,7 @@ pipeline {
                     cd polr
                     php artisan migrate --force
                 '''
-        }        
+            }
+        }
     }
 }
