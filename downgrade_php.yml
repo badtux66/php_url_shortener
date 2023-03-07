@@ -17,22 +17,22 @@
     - name: Install PHP dependencies
       yum:
         name:
-          - php
-          - php-cli
-          - php-common
-          - php-devel
-          - php-fpm
-          - php-gd
-          - php-intl
-          - php-json
-          - php-mbstring
-          - php-mysqlnd
-          - php-opcache
-          - php-pdo
-          - php-pear
-          - php-pecl-apcu
-          - php-process
-          - php-xml
+          - php74
+          - php74-cli
+          - php74-common
+          - php74-devel
+          - php74-fpm
+          - php74-gd
+          - php74-intl
+          - php74-json
+          - php74-mbstring
+          - php74-mysqlnd
+          - php74-opcache
+          - php74-pdo
+          - php74-pear
+          - php74-pecl-apcu
+          - php74-process
+          - php74-xml
         state: present
 
     - name: Restart php-fpm service
@@ -53,10 +53,6 @@
   tasks:
     
     - name: Remove PHP 8.0.27 packages
-      become: yes
-      become_user: root
-      become_method: sudo
-      gather_facts: yes
       dnf:
         name:
           - php
@@ -68,10 +64,6 @@
         var: remove_php_packages   
    
     - name: Add the Remi repository
-      become: yes
-      become_user: root
-      become_method: sudo
-      gather_facts: yes
       yum_repository:
         name: remi
         description: Remi's RPM repository for Enterprise Linux 7 - $basearch
@@ -81,10 +73,6 @@
         enabled: yes   
 
     - name: Install PHP 7.4.33 packages
-      become: yes
-      become_user: root
-      become_method: sudo
-      gather_facts: yes
       dnf:
         name:
           - php74
@@ -109,10 +97,6 @@
         var: ansible_facts.packages   
 
     - name: Restart PHP-FPM
-      become: yes
-      become_user: root
-      become_method: sudo
-      gather_facts: yes
       systemd:
         name: php-fpm
         state: restarted

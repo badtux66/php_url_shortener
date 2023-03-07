@@ -137,7 +137,7 @@
           - php-xml
           - php-tokenizer
           - php-curl
-        state: present
+        state: latest
       vars:
         yum_install_repositories:
           - name: remi

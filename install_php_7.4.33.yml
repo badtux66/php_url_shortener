@@ -1,0 +1,19 @@
+---
+- name: Install PHP 7.4.33
+  hosts: all
+  become: yes
+  tasks:
+  - name: Install EPEL repository
+    dnf:
+      name: epel-release
+      state: present
+
+  - name: Install Remi repository
+    dnf:
+      name: https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+      state: present
+
+  - name: Install PHP 7.4.33
+    dnf:
+      name: php74-php
+      state: present

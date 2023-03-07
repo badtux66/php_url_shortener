@@ -7,13 +7,15 @@ pipeline {
         TARGET_HOST = '192.168.155.21'
         TARGET_DIR = '/var/www/polr'
         APP_PORT = 8000
-        PHP_VERSION = '7.2.24'
+        PHP_VERSION = '8.0.27'
     }
 
     stages {
         stage('Cleanup') {
             steps {
-                sh 'rm -rf polr'
+                sh'''
+                    rm -rf polr
+                '''    
             }
         }
 
@@ -28,7 +30,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                    cd polr
+                    cd /var/lib/jenkins/workspace/polr-deployment-pipeline/polr
                     composer update --no-dev
                     composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
                     composer install --no-dev
@@ -39,44 +41,47 @@ pipeline {
         stage('Copy .env') {
             steps {
                 sh '''
-                    cd polr
-                    mv .env.setup .env
+                    cd /var/lib/jenkins/workspace/polr-deployment-pipeline/polr
+                    cp .env.setup .env
                 '''
             }
         }
 
-        stage('Set APP_KEY') {
+        stage('SSH to Target') {
+            steps {                              
+                sh '''
+                     cd ~/.ssh
+                     ssh -i $SSH_KEY $SSH_USER@$TARGET_HOST                                                                                                
+                 '''
+            }        
+        }
+                     
+        stage('mkdir & chown Target Directory') {
             steps {
                 sh '''
-                    cd polr
-                    php artisan key:generate
+                     cd /var/www/polr
+                     sudo mkdir -p $TARGET_DIR && sudo chown $SSH_USER $TARGET_DIR                     
                 '''
             }
         }
 
-        stage('Deploy to Target') {
+        stage('Deploy via SCP') {
             steps {
-                script {
-                    try {
-                        withCredentials([sshUserPrivateKey(credentialsId: 'polr-deployment-pipeline', keyFileVariable: 'SSH_KEY')]) {
-                            sh '''
-                                cd polr
-                                echo "Creating remote directory: $TARGET_DIR"
-                                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "sudo mkdir -p $TARGET_DIR && sudo chown $SSH_USER $TARGET_DIR"
-                                echo "Copying files to remote server: $TARGET_DIR"
-                                scp -v -o StrictHostKeyChecking=no -i $SSH_KEY -r -p polr/* $SSH_USER@$TARGET_HOST:$TARGET_DIR
-                                echo "Setting file permissions on remote server: $TARGET_DIR"
-                                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$TARGET_HOST "cd $TARGET_DIR && sudo chmod -R 755 . && sudo service httpd restart"
-                            '''
-                        }
-                    } catch (err) {
-                        echo "Deployment failed: ${err}"
-                        currentBuild.result = 'FAILURE'
-                    }
-                }
+                sh '''                    
+                    scp -v -o StrictHostKeyChecking=no -i $SSH_KEY -r -p polr/* $SSH_USER@$TARGET_HOST:$TARGET_DIR
+                '''
             }
         }
-        
+
+
+        stage('Setting File Permissions on the Target Directory') {
+            steps {
+                sh '''
+                     cd $TARGET_DIR && sudo chmod -R 755 . && sudo service httpd restart
+                '''
+            }
+        }
+
         stage('Cleanup after Deployment') {
             steps {
                 sh '''
@@ -86,7 +91,7 @@ pipeline {
                 '''
             }
         }
-
+        
         stage('Install Dependencies after Deployment') {
             steps {
                 sh '''
@@ -102,7 +107,6 @@ pipeline {
                     cd polr
                     php artisan migrate --force
                 '''
-            }
-        }
+        }        
     }
 }

@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
 
   # LAMP server
   config.vm.define "gshortener" do |gshortener|
-    gshortener.vm.box = "eurolinux-vagrant/rocky-8"
+    gshortener.vm.box = "eurolinux-vagrant/rocky-9"
     gshortener.vm.hostname = "gshortener.pusula.local"
     gshortener.vm.network "public_network",
       bridge: $network_interface,
@@ -27,7 +27,7 @@ Vagrant.configure("2") do |config|
 
   # Jenkins server
   config.vm.define "jenkins" do |jenkins|
-    jenkins.vm.box = "eurolinux-vagrant/rocky-8"
+    jenkins.vm.box = "eurolinux-vagrant/rocky-9"
     jenkins.vm.hostname = "jenkins01.pusula.local"
     jenkins.vm.network "public_network",
       bridge: $network_interface,
