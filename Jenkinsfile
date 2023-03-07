@@ -7,7 +7,7 @@ pipeline {
         TARGET_HOST = '192.168.155.21'
         TARGET_DIR = '/var/www/polr'
         APP_PORT = 8000
-        PHP_VERSION = '8.0.27'
+        PHP_VERSION = '7.2.24'
     }
 
     stages {

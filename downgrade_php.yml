@@ -1,46 +1,100 @@
 ---
-- hosts: all
+- name: Install dependencies for PHP 7.4.33 on Rocky Linux 8
+  hosts: all
   become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
   vars:
+    ansible_become_pass: pusula+2023
+    
+  tasks:
+    - name: Install EPEL repository
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Install PHP dependencies
+      yum:
+        name:
+          - php
+          - php-cli
+          - php-common
+          - php-devel
+          - php-fpm
+          - php-gd
+          - php-intl
+          - php-json
+          - php-mbstring
+          - php-mysqlnd
+          - php-opcache
+          - php-pdo
+          - php-pear
+          - php-pecl-apcu
+          - php-process
+          - php-xml
+        state: present
+
+    - name: Restart php-fpm service
+      systemd:
+        name: php-fpm
+        state: restarted
+
+- name: Remove PHP 8.0.27 and Reinstall PHP 7.4.33
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    ansible_become_pass: pusula+2023
     php_version: 7.4.33
 
   tasks:
-    # Remove PHP 8.0.27 packages
+    
     - name: Remove PHP 8.0.27 packages
+      become: yes
+      become_user: root
+      become_method: sudo
+      gather_facts: yes
       dnf:
         name:
           - php
           - php-*
         state: absent
-      register: remove_php_packages
-
+      register: remove_php_packages   
     - name: Print removed PHP packages
       debug:
-        var: remove_php_packages
-
-    # Add the Remi repository for PHP 7.4
+        var: remove_php_packages   
+   
     - name: Add the Remi repository
+      become: yes
+      become_user: root
+      become_method: sudo
+      gather_facts: yes
       yum_repository:
         name: remi
         description: Remi's RPM repository for Enterprise Linux 7 - $basearch
         baseurl: https://rpms.remirepo.net/enterprise/7/remi/$basearch/
         gpgkey: https://rpms.remirepo.net/RPM-GPG-KEY-remi
         gpgcheck: yes
-        enabled: yes
+        enabled: yes   
 
-
-    # Install PHP 7.4.33 packages
     - name: Install PHP 7.4.33 packages
+      become: yes
+      become_user: root
+      become_method: sudo
+      gather_facts: yes
       dnf:
         name:
-          - php
-          - php-cli
-          - php-common
-          - php-fpm
-          - php-gd
-          - php-json
-          - php-mbstring
-          - php-mysqlnd
+          - php74
+          - php74-cli
+          - php74-common
+          - php74-fpm
+          - php74-gd
+          - php74-json
+          - php74-mbstring
+          - php74-mysqlnd
           - php-opcache
           - php-pdo
           - php-xml
@@ -48,14 +102,17 @@
           - php-curl
         state: present
         enablerepo: remi-php74,remi-safe
-        disable_gpg_check: yes
+        disable_gpg_check: yes   
 
     - name: Print installed PHP packages
       debug:
-        var: ansible_facts.packages
+        var: ansible_facts.packages   
 
-    # Restart PHP-FPM service
     - name: Restart PHP-FPM
+      become: yes
+      become_user: root
+      become_method: sudo
+      gather_facts: yes
       systemd:
         name: php-fpm
         state: restarted
