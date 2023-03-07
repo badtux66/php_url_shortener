@@ -1,0 +1,61 @@
+---
+- hosts: all
+  become: true
+  vars:
+    php_version: 7.4.33
+
+  tasks:
+    # Remove PHP 8.0.27 packages
+    - name: Remove PHP 8.0.27 packages
+      dnf:
+        name:
+          - php
+          - php-*
+        state: absent
+      register: remove_php_packages
+
+    - name: Print removed PHP packages
+      debug:
+        var: remove_php_packages
+
+    # Add the Remi repository for PHP 7.4
+    - name: Add the Remi repository
+      yum_repository:
+        name: remi
+        description: Remi's RPM repository for Enterprise Linux 7 - $basearch
+        baseurl: https://rpms.remirepo.net/enterprise/7/remi/$basearch/
+        gpgkey: https://rpms.remirepo.net/RPM-GPG-KEY-remi
+        gpgcheck: yes
+        enabled: yes
+
+
+    # Install PHP 7.4.33 packages
+    - name: Install PHP 7.4.33 packages
+      dnf:
+        name:
+          - php
+          - php-cli
+          - php-common
+          - php-fpm
+          - php-gd
+          - php-json
+          - php-mbstring
+          - php-mysqlnd
+          - php-opcache
+          - php-pdo
+          - php-xml
+          - php-tokenizer
+          - php-curl
+        state: present
+        enablerepo: remi-php74,remi-safe
+        disable_gpg_check: yes
+
+    - name: Print installed PHP packages
+      debug:
+        var: ansible_facts.packages
+
+    # Restart PHP-FPM service
+    - name: Restart PHP-FPM
+      systemd:
+        name: php-fpm
+        state: restarted
