@@ -1,8 +1,26 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+require 'socket'
+require 'timeout'
+
 $network_interface = `sudo iw dev | awk '$1=="Interface"{print $2}'`.strip
 $subnet = `ip -4 addr show $network_interface | awk '/inet 192.168./{split($2,a,"."); print a[3]}'`.strip
+
+def get_available_ip(base_ip, subnet)
+  ip_parts = base_ip.split(".")
+  ip_parts[2] = subnet
+  (1..254).each do |octet|
+    ip_parts[3] = octet.to_s
+    candidate_ip = ip_parts.join(".")
+    begin
+      timeout(1) { TCPSocket.new(candidate_ip, 22) }
+    rescue Errno::ETIMEDOUT, Errno::ECONNREFUSED, Timeout::Error
+      return candidate_ip
+    end
+  end
+  raise "No available IP addresses in the subnet"
+end
 
 Vagrant.configure("2") do |config|
 
@@ -10,48 +28,24 @@ Vagrant.configure("2") do |config|
   config.vm.define "gshortener" do |gshortener|
     gshortener.vm.box = "eurolinux-vagrant/rocky-9"
     gshortener.vm.hostname = "gshortener.pusula.local"
+    gshortener_ip = get_available_ip("192.168.#{$subnet}.21", $subnet)
     gshortener.vm.network "public_network",
       bridge: $network_interface,
-      ip: "192.168.#{$subnet}.21",
+      ip: gshortener_ip,
       dhcp: true
-    gshortener.vm.provider "vmware_desktop" do |v|
-      v.gui = true
-      v.memory = 2048
-      v.cpus = 2
-    end
-    gshortener.vm.provision "ansible" do |ansible|
-      ansible.limit = "all"
-      ansible.playbook = "ansible/gshortener/gshortener.yml"
-    end
-  end
+    # ...
 
   # Jenkins server
   config.vm.define "jenkins" do |jenkins|
     jenkins.vm.box = "eurolinux-vagrant/rocky-9"
     jenkins.vm.hostname = "jenkins01.pusula.local"
+    jenkins_ip = get_available_ip("192.168.#{$subnet}.22", $subnet)
     jenkins.vm.network "public_network",
       bridge: $network_interface,
-      ip: "192.168.#{$subnet}.22",
+      ip: jenkins_ip,
       dhcp: true
-    jenkins.vm.synced_folder ".", "/vagrant"
-    jenkins.vm.provider "vmware_desktop" do |v|
-      v.gui = true
-      v.memory = 2048
-      v.cpus = 2
-    end
-    jenkins.vm.provision "ansible" do |ansible|
-      ansible.limit = "all"
-      ansible.playbook = "ansible/jenkins/jenkins.yml"
-    end
-  end
+    # ...
 
   # Configure global settings for all VMs
-  config.vm.provider "vmware_desktop" do |v|
-    v.whitelist_verified = true
-    v.vmx["ethernet0.virtualDev"] = "vmxnet3"
-    v.vmx["ethernet1.virtualDev"] = "vmxnet3"
-    v.memory = 2048
-    v.cpus = 2
-  end
-
+  # ...
 end
